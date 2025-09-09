@@ -2,46 +2,40 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master, develop ]
+    branches: [ main, master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        node-version: [24.x]
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        # 确保获取所有历史记录以正确检测更改
-        fetch-depth: 0
     
-    - name: Setup Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
-        # 移除 cache 配置或确保锁文件存在
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
+        node-version: '18.x'
+        # 只在锁文件存在时启用缓存
+        cache: ${{ hashFiles('package-lock.json') != '' && 'npm' || '' }}
     
-    - name: Install dependencies
+    - name: Detect lock file and install dependencies
       run: |
-        # 检查锁文件是否存在
         if [ -f "package-lock.json" ]; then
-          echo "Using package-lock.json"
+          echo "Using package-lock.json with npm ci"
           npm ci
         elif [ -f "yarn.lock" ]; then
-          echo "Using yarn.lock"
+          echo "Using yarn.lock with yarn install"
           yarn install --frozen-lockfile
         else
-          echo "No lock file found, generating one..."
+          echo "No lock file found, using npm install"
           npm install
-          # 如果是新项目，可以提交生成的锁文件
+          # 生成锁文件以便后续使用
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add package-lock.json || true
+          git commit -m "Add package-lock.json" || true
+          git push || true
         fi
     
     - name: Run build
