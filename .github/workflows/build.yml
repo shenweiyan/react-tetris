@@ -1,8 +1,10 @@
-name: npm run build
+name: Build and Test
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
 
 jobs:
   build:
@@ -10,20 +12,37 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [24.x]
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # 确保获取所有历史记录以正确检测更改
+        fetch-depth: 0
     
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+        # 移除 cache 配置或确保锁文件存在
         cache: 'npm'
+        cache-dependency-path: package-lock.json
     
     - name: Install dependencies
-      run: npm ci
+      run: |
+        # 检查锁文件是否存在
+        if [ -f "package-lock.json" ]; then
+          echo "Using package-lock.json"
+          npm ci
+        elif [ -f "yarn.lock" ]; then
+          echo "Using yarn.lock"
+          yarn install --frozen-lockfile
+        else
+          echo "No lock file found, generating one..."
+          npm install
+          # 如果是新项目，可以提交生成的锁文件
+        fi
     
     - name: Run build
       run: npm run build
