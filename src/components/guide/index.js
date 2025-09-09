@@ -71,14 +71,14 @@ export default class Guide extends React.Component {
           <div className={style.space}>SPACE</div>
         </div>
         { this.state.QRCode !== '' ? (
-          <!--div className={`${style.guide} ${style.qr}`}>
+          <div className={`${style.guide} ${style.qrc}`}>
             <img
               src={this.state.QRCode}
               alt={i18n.QRCode[lan]}
             />
           </div>
         ) : null }
-      </div-->
+      </div>
     );
   }
 }
