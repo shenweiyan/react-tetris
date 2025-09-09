@@ -47,8 +47,7 @@ export default class Guide extends React.Component {
             <em style={{ [transform]: 'translate(7px,3px)rotate(90deg) scale(1,2)' }} />
           </div>
         </div>
-        <div className={`${style.guide} ${style.left}`}>
-          
+        <div className={`${style.guide} ${style.left}`}>    
           <div className={style.space}>SPACE</div>
         </div>
         { this.state.QRCode !== '' ? (
